@@ -1,3 +1,5 @@
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>みんなの掲示板</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -55,6 +57,10 @@
 
   * { box-sizing: border-box; }
 
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
   body {
     margin: 0;
     background: var(--bg);
@@ -63,7 +69,7 @@
     min-height: 100vh;
     display: flex;
     justify-content: center;
-    padding: 40px 20px 80px;
+    padding: clamp(20px, 6vw, 40px) clamp(12px, 4vw, 20px) 60px;
   }
 
   main {
@@ -74,14 +80,14 @@
   .hero {
     background: linear-gradient(135deg, var(--hero-from), var(--hero-to));
     border-radius: 20px 20px 0 0;
-    padding: 40px 32px 88px;
+    padding: clamp(28px, 8vw, 40px) clamp(18px, 5vw, 32px) clamp(64px, 14vw, 88px);
     text-align: center;
     color: #f2f6fc;
   }
 
   .hero h1 {
     font-weight: 800;
-    font-size: 1.9rem;
+    font-size: clamp(1.5rem, 5.5vw, 1.9rem);
     letter-spacing: 0.02em;
     text-wrap: balance;
     margin: 0 0 10px;
@@ -89,7 +95,7 @@
 
   .hero p {
     margin: 0;
-    font-size: 0.92rem;
+    font-size: clamp(0.82rem, 2.6vw, 0.92rem);
     color: #c7d8ec;
     line-height: 1.6;
   }
@@ -98,8 +104,8 @@
     background: var(--surface);
     border-radius: 18px;
     box-shadow: 0 12px 28px var(--shadow);
-    margin: -56px 20px 0;
-    padding: 24px;
+    margin: clamp(-44px, -10vw, -56px) clamp(10px, 3vw, 20px) 0;
+    padding: clamp(18px, 5vw, 24px);
     position: relative;
     z-index: 1;
   }
@@ -132,7 +138,7 @@
     padding: 11px 14px;
     border: 1px solid var(--border);
     border-radius: 10px;
-    font-size: 0.96rem;
+    font-size: 1rem;
     font-family: inherit;
     background: var(--surface);
     color: var(--ink);
@@ -157,6 +163,7 @@
 
   .form-footer {
     display: flex;
+    flex-wrap: wrap;
     justify-content: flex-end;
     align-items: center;
     margin-top: 16px;
@@ -172,16 +179,18 @@
   }
 
   button {
-    padding: 11px 26px;
+    padding: 12px 26px;
     background: var(--accent);
     color: #f2f7fc;
     border: none;
     border-radius: 10px;
-    font-size: 0.92rem;
+    font-size: 0.95rem;
     font-weight: 700;
     font-family: inherit;
     cursor: pointer;
     transition: background 0.15s ease;
+    min-height: 44px;
+    flex: 1 1 auto;
   }
 
   button:hover {
@@ -197,8 +206,8 @@
     background: var(--surface);
     border-radius: 18px;
     box-shadow: 0 12px 28px var(--shadow);
-    margin: 16px 20px 0;
-    padding: 24px;
+    margin: 16px clamp(10px, 3vw, 20px) 0;
+    padding: clamp(18px, 5vw, 24px);
   }
 
   .list-heading {
