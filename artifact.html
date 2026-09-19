@@ -354,7 +354,7 @@
   const SUPABASE_URL = "https://mqkuoygyatyalkynhauj.supabase.co";
   const SUPABASE_ANON_KEY = "sb_publishable_HONnw8Vn6XJAL94OaySFhw_RFmawq1Y";
 
-  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   const postForm = document.getElementById("postForm");
   const nameInput = document.getElementById("name");
@@ -406,7 +406,7 @@
 
   async function loadPosts() {
     list.innerHTML = '<div class="status-message">読み込み中…</div>';
-    const { data, error } = await supabase
+    const { data, error } = await sb
       .from("messages")
       .select("id, name, body, created_at")
       .order("created_at", { ascending: false });
@@ -432,7 +432,7 @@
     submitButton.disabled = true;
     submitButton.textContent = "投稿中…";
 
-    const { error } = await supabase.from("messages").insert({
+    const { error } = await sb.from("messages").insert({
       name: nameInput.value.trim() || null,
       body: body,
     });
@@ -454,7 +454,7 @@
 
   loadPosts();
 
-  supabase
+  sb
     .channel("messages-changes")
     .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, () => {
       loadPosts();
