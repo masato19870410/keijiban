@@ -9,19 +9,20 @@ create table if not exists public.messages (
 -- RLS を有効化
 alter table public.messages enable row level security;
 
--- 匿名ユーザーの select を許可
-create policy "Allow anonymous select"
+-- 既存の匿名ポリシーがあれば削除して、認証必須のポリシーに置き換え
+drop policy if exists "Allow anonymous select" on public.messages;
+drop policy if exists "Allow anonymous insert" on public.messages;
+
+-- 誰でも閲覧可能（ログイン不要）
+create policy "Allow public select"
   on public.messages
   for select
-  to anon
+  to anon, authenticated
   using (true);
 
--- 匿名ユーザーの insert を許可
-create policy "Allow anonymous insert"
+-- 投稿はログイン済みユーザーのみ
+create policy "Allow authenticated insert"
   on public.messages
   for insert
-  to anon
+  to authenticated
   with check (true);
-
--- Realtime購読を使う場合は、Supabaseダッシュボードの
--- Database > Replication で messages テーブルを有効化してください

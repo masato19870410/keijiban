@@ -312,6 +312,47 @@
     opacity: 0.6;
     cursor: default;
   }
+
+  .hidden {
+    display: none;
+  }
+
+  .auth-hint {
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+    line-height: 1.6;
+    margin: 0 0 16px;
+  }
+
+  .logged-in-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+    overflow-wrap: anywhere;
+  }
+
+  .link-button {
+    background: none;
+    border: none;
+    color: var(--accent);
+    font-size: 0.82rem;
+    font-family: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 0;
+    white-space: nowrap;
+    flex: none;
+  }
+
+  .link-button:hover {
+    text-decoration: underline;
+  }
 </style>
 
 <main>
@@ -321,21 +362,40 @@
   </div>
 
   <div class="panel">
-    <h2>投稿する</h2>
-    <form id="postForm">
+    <div id="authLoggedOut">
+      <h2>ログインして投稿する</h2>
+      <p class="auth-hint">メールアドレスにログイン用リンクが届きます。クリックすると投稿できるようになります。</p>
       <div class="field">
-        <label for="name">お名前</label>
-        <input type="text" id="name" maxlength="30" placeholder="例：たろう">
-      </div>
-      <div class="field">
-        <label for="message">ひとこと</label>
-        <textarea id="message" maxlength="500" placeholder="今日できたこと・感想など" required></textarea>
+        <label for="authEmail">メールアドレス</label>
+        <input type="email" id="authEmail" placeholder="you@example.com" required>
       </div>
       <div class="form-footer">
-        <span class="char-count" id="charCount">0 / 500</span>
-        <button type="submit">投稿する</button>
+        <span class="char-count" id="authStatus"></span>
+        <button type="button" id="sendLinkButton">ログインリンクを送る</button>
       </div>
-    </form>
+    </div>
+
+    <div id="authLoggedIn" class="hidden">
+      <div class="logged-in-bar">
+        <span id="loggedInEmail"></span>
+        <button type="button" id="logoutButton" class="link-button">ログアウト</button>
+      </div>
+      <h2>投稿する</h2>
+      <form id="postForm">
+        <div class="field">
+          <label for="name">お名前</label>
+          <input type="text" id="name" maxlength="30" placeholder="例：たろう">
+        </div>
+        <div class="field">
+          <label for="message">ひとこと</label>
+          <textarea id="message" maxlength="500" placeholder="今日できたこと・感想など" required></textarea>
+        </div>
+        <div class="form-footer">
+          <span class="char-count" id="charCount">0 / 500</span>
+          <button type="submit">投稿する</button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <div class="list-panel">
@@ -346,7 +406,7 @@
     <div id="postList"></div>
   </div>
 
-  <footer>投稿はSupabase（クラウドDB）に保存され、みんなに公開されます</footer>
+  <footer>投稿にはメール認証が必要です。閲覧は誰でもできます。投稿内容はSupabase（クラウドDB）に保存されます</footer>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -363,6 +423,63 @@
   const submitButton = postForm.querySelector("button[type=submit]");
   const list = document.getElementById("postList");
   const count = document.getElementById("listCount");
+
+  const authLoggedOut = document.getElementById("authLoggedOut");
+  const authLoggedIn = document.getElementById("authLoggedIn");
+  const authEmailInput = document.getElementById("authEmail");
+  const authStatus = document.getElementById("authStatus");
+  const sendLinkButton = document.getElementById("sendLinkButton");
+  const loggedInEmail = document.getElementById("loggedInEmail");
+  const logoutButton = document.getElementById("logoutButton");
+
+  function updateAuthUI(session) {
+    if (session && session.user) {
+      authLoggedOut.classList.add("hidden");
+      authLoggedIn.classList.remove("hidden");
+      loggedInEmail.textContent = `ログイン中：${session.user.email}`;
+      if (!nameInput.value) {
+        nameInput.value = session.user.email.split("@")[0];
+      }
+    } else {
+      authLoggedOut.classList.remove("hidden");
+      authLoggedIn.classList.add("hidden");
+    }
+  }
+
+  sendLinkButton.addEventListener("click", async () => {
+    const email = authEmailInput.value.trim();
+    if (!email) return;
+
+    sendLinkButton.disabled = true;
+    authStatus.textContent = "送信中…";
+
+    const { error } = await sb.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: window.location.href },
+    });
+
+    sendLinkButton.disabled = false;
+
+    if (error) {
+      authStatus.textContent = "送信に失敗しました。";
+      console.error(error);
+      return;
+    }
+
+    authStatus.textContent = "リンクを送りました。メールを確認してください。";
+  });
+
+  logoutButton.addEventListener("click", async () => {
+    await sb.auth.signOut();
+  });
+
+  sb.auth.onAuthStateChange((_event, session) => {
+    updateAuthUI(session);
+  });
+
+  sb.auth.getSession().then(({ data }) => {
+    updateAuthUI(data.session);
+  });
 
   function escapeHtml(str) {
     const div = document.createElement("div");
